@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Создание таблицы users -->
+    <changeSet id="1" author="notesapp">
+        <createTable tableName="users">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="username" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="password" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="VARCHAR(255)" defaultValue="ROLE_USER"/>
+            <column name="enabled" type="BOOLEAN" defaultValueBoolean="true"/>
+        </createTable>
+        <addUniqueConstraint 
+            constraintName="uk_users_username"
+            tableName="users" 
+            columnNames="username"/>
+        <addUniqueConstraint 
+            constraintName="uk_users_email"
+            tableName="users" 
+            columnNames="email"/>
+    </changeSet>
+
+    <!-- Создание таблицы notebooks -->
+    <changeSet id="2" author="notesapp">
+        <createTable tableName="notebooks">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="user_id" type="BIGINT"/>
+        </createTable>
+        <addForeignKeyConstraint 
+            constraintName="fk_notebooks_user"
+            baseTableName="notebooks" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Создание таблицы notes -->
+    <changeSet id="3" author="notesapp">
+        <createTable tableName="notes">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="CLOB"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+            <column name="archived" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="user_id" type="BIGINT"/>
+            <column name="notebook_id" type="BIGINT"/>
+        </createTable>
+        <addForeignKeyConstraint 
+            constraintName="fk_notes_user"
+            baseTableName="notes" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="id"/>
+        <addForeignKeyConstraint 
+            constraintName="fk_notes_notebook"
+            baseTableName="notes" baseColumnNames="notebook_id"
+            referencedTableName="notebooks" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Создание таблицы tags -->
+    <changeSet id="4" author="notesapp">
+        <createTable tableName="tags">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="user_id" type="BIGINT"/>
+        </createTable>
+        <addForeignKeyConstraint 
+            constraintName="fk_tags_user"
+            baseTableName="tags" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Связующая таблица note_tags -->
+    <changeSet id="5" author="notesapp">
+        <createTable tableName="note_tags">
+            <column name="note_id" type="BIGINT"/>
+            <column name="tag_id" type="BIGINT"/>
+        </createTable>
+        <addForeignKeyConstraint 
+            constraintName="fk_notetags_note"
+            baseTableName="note_tags" baseColumnNames="note_id"
+            referencedTableName="notes" referencedColumnNames="id"/>
+        <addForeignKeyConstraint 
+            constraintName="fk_notetags_tag"
+            baseTableName="note_tags" baseColumnNames="tag_id"
+            referencedTableName="tags" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Создание таблицы attachments -->
+    <changeSet id="6" author="notesapp">
+        <createTable tableName="attachments">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="file_name" type="VARCHAR(255)"/>
+            <column name="file_url" type="VARCHAR(255)"/>
+            <column name="note_id" type="BIGINT"/>
+        </createTable>
+        <addForeignKeyConstraint 
+            constraintName="fk_attachments_note"
+            baseTableName="attachments" baseColumnNames="note_id"
+            referencedTableName="notes" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Создание таблицы reminders -->
+    <changeSet id="7" author="notesapp">
+        <createTable tableName="reminders">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(255)"/>
+            <column name="remind_at" type="TIMESTAMP"/>
+            <column name="notified" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="user_id" type="BIGINT"/>
+            <column name="note_id" type="BIGINT"/>
+        </createTable>
+        <addForeignKeyConstraint 
+            constraintName="fk_reminders_user"
+            baseTableName="reminders" baseColumnNames="user_id"
+            referencedTableName="users" referencedColumnNames="id"/>
+        <addForeignKeyConstraint 
+            constraintName="fk_reminders_note"
+            baseTableName="reminders" baseColumnNames="note_id"
+            referencedTableName="notes" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Создание таблицы note_histories -->
+    <changeSet id="8" author="notesapp">
+        <createTable tableName="note_histories">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="old_title" type="VARCHAR(255)"/>
+            <column name="old_content" type="CLOB"/>
+            <column name="changed_at" type="TIMESTAMP"/>
+            <column name="note_id" type="BIGINT"/>
+        </createTable>
+        <addForeignKeyConstraint 
+            constraintName="fk_histories_note"
+            baseTableName="note_histories" baseColumnNames="note_id"
+            referencedTableName="notes" referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Создание таблицы shared_notes -->
+    <changeSet id="9" author="notesapp">
+        <createTable tableName="shared_notes">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="share_token" type="VARCHAR(255)"/>
+            <column name="is_public" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="shared_at" type="TIMESTAMP"/>
+            <column name="expires_at" type="TIMESTAMP"/>
+            <column name="note_id" type="BIGINT"/>
+            <column name="shared_by_id" type="BIGINT"/>
+        </createTable>
+        <addUniqueConstraint
+            constraintName="uk_shared_notes_note_id"
+            tableName="shared_notes"
+            columnNames="note_id"/>
+        <addForeignKeyConstraint 
+            constraintName="fk_shared_note"
+            baseTableName="shared_notes" baseColumnNames="note_id"
+            referencedTableName="notes" referencedColumnNames="id"/>
+        <addForeignKeyConstraint 
+            constraintName="fk_shared_by_user"
+            baseTableName="shared_notes" baseColumnNames="shared_by_id"
+            referencedTableName="users" referencedColumnNames="id"/>
+    </changeSet>
+
+</databaseChangeLog>
